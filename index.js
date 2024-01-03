@@ -1,44 +1,29 @@
 const express = require("express");
-const axios = require("axios");
-const app = express();
-const dotenv = require("dotenv").config();
+const bodyParser = require("body-parser");
+const { getTextMessage, sendMessage } = require("./functions");
 
-app.get("/", (req, res) => {
-  res.send("Hello, Express Server!");
+const app = new express().use(bodyParser.json());
+
+app.get("/webhook", (req, res) => {
+  console.log(req.query["hub.mode"]);
+  res.send("hi");
 });
 
-const accessToken = process.env.FACEBOOK_ACCESS_TOKEN;
+app.post("/", (req, res) => {
+  let data = getTextMessage("7989837678", "Welcome To My new Business whtsapp");
+  sendMessage(data)
+    .then(function (responce) {
+      console.log("message send successfully");
+      res.sendStatus(200);
+      return;
+    })
+    .catch(function (err) {
+      console.log(" it is errror inside catch" + err);
+      res.sendStatus(500);
+      return;
+    });
+});
 
-const apiEndpoint = "https://graph.facebook.com/v17.0/117979374738349/messages";
-
-const messageData = {
-  messaging_product: "whatsapp",
-  to: process.env.RECIPIENT_PHONE_NUMBER, // Replace with the recipient's phone number
-  type: "template",
-  template: {
-    name: "hello_world",
-    language: {
-      code: "en_US",
-    },
-  },
-};
-
-const config = {
-  headers: {
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  },
-};
-
-axios
-  .post(apiEndpoint, messageData, config)
-  .then(response => {
-    console.log("API response:", response.data);
-  })
-  .catch(error => {
-    console.error("API error:", error);
-  });
-
-app.listen(3000, () => {
-  console.log(`Server is running on port 3000`);
+app.listen(5000, () => {
+  console.log("app is started in port 5000");
 });
